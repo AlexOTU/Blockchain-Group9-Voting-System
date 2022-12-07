@@ -86,3 +86,48 @@ def generateHash(parent, PoW):
             if str('0' * PoW) == str(hash)[0: PoW]:
                 print(f'\r{count} Hashes Checked. Difficulty set to {PoW}.\n')
                 return hash
+#Adding the block that is created to the blockchain
+def add(blockchain, block = None):
+    blockchain.append(block)
+    #Writing the block to JSON to see the information if required
+    block.writeBlockToJSON(block.id)
+#The Generating Block function
+#The proof difficulty is set at the top of the code
+def generateBlock(blockchain, proof = DIFFICULTY):
+    id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(32))
+    timestamp = int(datetime.datetime.utcnow().timestamp())
+    parentID = blockchain[-1].id
+    content = input('Enter your vote > ')
+    #Calling generateHash function above
+    hash = generateHash(blockchain[-1], proof)
+    PoW = proof
+    #This sends the details pertaining to the users vote and will add it to the blockchain
+    add(blockchain, Block(id, timestamp, parentID, content.lower(), PoW, hash))
+#This function will show the current inputted votes
+def showTally(blockchain):
+    temp = {}
+    order(blockchain)
+    #Values in the blockchain are called and put into the temp variable
+    for i in blockchain:
+        if i.content in temp: temp[i.content] += 1
+        else: temp[i.content] = 1
+    #Putting the values on the screen in the format of (Candidate  | Number of votes)
+    print(f'\n\nQuestion: {list(temp.keys())[-1]:10}\n\nPoll Results\n\nAnswer | Votes')
+    for i in range(len(temp) - 1):
+        print(f'{list(temp.keys())[i]:8} | {list(temp.values())[i]:3}')
+    print("\n***\n")
+#This section is the interface part of the code or what will show to the user.
+if __name__ == '__main__':
+    blockchain = []
+    load(blockchain)
+    inp = True
+    while inp:
+	#Formmated to show the 3 options of casting a vote, showing total votes/results and exiting
+        user_input = input('Please select an operation\n\n[1] Add A New Vote\n[2] Display Current Tally\n[3] Quit\n\n\n> ').lower()
+        if user_input == '1':
+            generateBlock(blockchain, proof=DIFFICULTY)
+        if user_input == '2':
+            showTally(blockchain)
+        if user_input == '3' or user_input.lower() == 'quit':
+            inp = False
+    print('Closing blockchain program.')
